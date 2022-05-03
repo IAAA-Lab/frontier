@@ -89,11 +89,6 @@ fun getParams(
     return getParams.build()
 }
 
-fun Urlfrontier.GetParams.Builder.anyCrawlID() {
-    val info = Urlfrontier.GetParams.newBuilder().anyCrawlIDBuilder
-    setAnyCrawlID(info)
-}
-
 fun pagination(
     block: Urlfrontier.Pagination.Builder.() -> Unit,
 ): Urlfrontier.Pagination {
@@ -109,4 +104,3 @@ fun URLFrontierGrpcKt.URLFrontierCoroutineStub.putUrls(vararg elements: Urlfront
         response.toList()
     }
 }
-

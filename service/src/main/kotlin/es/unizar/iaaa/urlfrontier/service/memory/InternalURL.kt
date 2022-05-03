@@ -1,7 +1,6 @@
 package es.unizar.iaaa.urlfrontier.service.memory
 
 import crawlercommons.urlfrontier.Urlfrontier.URLInfo
-import es.unizar.iaaa.urlfrontier.service.QueueInCrawlKey
 
 class InternalURL(
     info: URLInfo,
@@ -30,14 +29,3 @@ class InternalURL(
     override fun toString(): String =
         "InternalURL(nextFetchDate=$nextFetchDate, url=$url, serialised=${serialised.contentToString()}, crawlID=$crawlID, heldUntil=$heldUntil)"
 }
-
-fun InternalURL.toURLInfo(prefixedKey: QueueInCrawlKey): URLInfo {
-    val unfrozen = URLInfo.parseFrom(serialised)
-    return URLInfo.newBuilder()
-        .setKey(prefixedKey.queueKey)
-        .setCrawlID(prefixedKey.crawlID)
-        .setUrl(url)
-        .putAllMetadata(unfrozen.metadataMap)
-        .build()
-}
-

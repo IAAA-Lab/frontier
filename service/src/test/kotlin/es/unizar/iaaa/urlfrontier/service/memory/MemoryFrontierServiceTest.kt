@@ -90,7 +90,8 @@ class MemoryFrontierServiceTest {
         val result = stub.putUrls(URL_DISCOVERED_A_IN_KEY_A_CRAWL_A, URL_DISCOVERED_A_IN_KEY_A_CRAWL_A)
         assertEquals(
             listOf("Added discovered [$EXAMPLE_URL_A]", "Discarded [$EXAMPLE_URL_A]"),
-            logCapture.loggingEvents.map { it.formattedMessage })
+            logCapture.loggingEvents.map { it.formattedMessage }
+        )
         assertEquals(listOf(EXAMPLE_URL_A, EXAMPLE_URL_A), result)
         assertEquals(1, service.queues.size)
         assertEquals(1, service.queues[testQueueId]?.countActive)
@@ -103,7 +104,8 @@ class MemoryFrontierServiceTest {
         val result = stub.putUrls(URL_DISCOVERED_A_IN_KEY_A_CRAWL_A, URL_KNOWN_REFETCHABLE)
         assertEquals(
             listOf("Added discovered [$EXAMPLE_URL_A]", "Removed [$EXAMPLE_URL_A]", "Added known [$EXAMPLE_URL_A]"),
-            logCapture.loggingEvents.map { it.formattedMessage })
+            logCapture.loggingEvents.map { it.formattedMessage }
+        )
         assertEquals(listOf(EXAMPLE_URL_A, EXAMPLE_URL_A), result)
         assertEquals(1, service.queues.size)
         assertEquals(1, service.queues[testQueueId]?.countActive)
@@ -116,7 +118,8 @@ class MemoryFrontierServiceTest {
         val result = stub.putUrls(URL_KNOWN_REFETCHABLE, URL_DISCOVERED_A_IN_KEY_A_CRAWL_A)
         assertEquals(
             listOf("Added known [$EXAMPLE_URL_A]", "Discarded [$EXAMPLE_URL_A]"),
-            logCapture.loggingEvents.map { it.formattedMessage })
+            logCapture.loggingEvents.map { it.formattedMessage }
+        )
         assertEquals(listOf(EXAMPLE_URL_A, EXAMPLE_URL_A), result)
         assertEquals(1, service.queues.size)
         assertEquals(1, service.queues[testQueueId]?.countActive)
@@ -129,7 +132,8 @@ class MemoryFrontierServiceTest {
         val result = stub.putUrls(URL_KNOWN_REFETCHABLE, URL_KNOWN_REFETCHABLE)
         assertEquals(
             listOf("Added known [$EXAMPLE_URL_A]", "Removed [$EXAMPLE_URL_A]", "Added known [$EXAMPLE_URL_A]"),
-            logCapture.loggingEvents.map { it.formattedMessage })
+            logCapture.loggingEvents.map { it.formattedMessage }
+        )
         assertEquals(listOf(EXAMPLE_URL_A, EXAMPLE_URL_A), result)
         assertEquals(1, service.queues.size)
         assertEquals(1, service.queues[testQueueId]?.countActive)
@@ -180,10 +184,12 @@ class MemoryFrontierServiceTest {
     fun `I want to get urls from a specific queue`() {
         stub.putUrls(URL_DISCOVERED_A_IN_KEY_A_CRAWL_A, URL_DISCOVERED_D_IN_KEY_B_CRAWL_A)
         val result = runBlocking {
-            stub.getURLs(getParams {
-                key = EXAMPLE_KEY_A
-                crawlID = CRAWL_ID_A
-            }).toList()
+            stub.getURLs(
+                getParams {
+                    key = EXAMPLE_KEY_A
+                    crawlID = CRAWL_ID_A
+                }
+            ).toList()
         }
         assertEquals(2, service.queues.size)
         assertEquals(1, result.size)
@@ -194,10 +200,12 @@ class MemoryFrontierServiceTest {
     fun `I want to obtain urls from a maximum number of queues`() {
         stub.putUrls(URL_DISCOVERED_A_IN_KEY_A_CRAWL_A, URL_DISCOVERED_D_IN_KEY_B_CRAWL_A)
         val result = runBlocking {
-            stub.getURLs(getParams {
-                crawlID = CRAWL_ID_A
-                maxQueues = 1
-            }).toList()
+            stub.getURLs(
+                getParams {
+                    crawlID = CRAWL_ID_A
+                    maxQueues = 1
+                }
+            ).toList()
         }
         assertEquals(2, service.queues.size)
         assertEquals(1, result.size)
@@ -211,10 +219,12 @@ class MemoryFrontierServiceTest {
             URL_DISCOVERED_C_IN_KEY_B_CRAWL_A, URL_DISCOVERED_D_IN_KEY_B_CRAWL_A
         )
         val result = runBlocking {
-            stub.getURLs(getParams {
-                crawlID = CRAWL_ID_A
-                maxUrlsPerQueue = 1
-            }).toList()
+            stub.getURLs(
+                getParams {
+                    crawlID = CRAWL_ID_A
+                    maxUrlsPerQueue = 1
+                }
+            ).toList()
         }
         assertEquals(2, service.queues.size)
         assertEquals(2, result.size)
@@ -229,9 +239,11 @@ class MemoryFrontierServiceTest {
         )
         val result = runBlocking {
             stub.setActive(false)
-            stub.getURLs(getParams {
-                crawlID = CRAWL_ID_A
-            }).toList()
+            stub.getURLs(
+                getParams {
+                    crawlID = CRAWL_ID_A
+                }
+            ).toList()
         }
         assertEquals(2, service.queues.size)
         assertEquals(0, result.size)
@@ -251,7 +263,8 @@ class MemoryFrontierServiceTest {
         assertEquals(0, result.start)
         assertContentEquals(
             listOf(EXAMPLE_KEY_A, EXAMPLE_KEY_B),
-            (0 until result.valuesCount).map { result.getValues(it) })
+            (0 until result.valuesCount).map { result.getValues(it) }
+        )
     }
 
     @Test
@@ -320,23 +333,29 @@ class MemoryFrontierServiceTest {
     fun `I want to block a queue for 1 second`() {
         stub.putUrls(URL_DISCOVERED_A_IN_KEY_A_CRAWL_A, URL_DISCOVERED_D_IN_KEY_B_CRAWL_A)
         runBlocking {
-            stub.blockQueueUntil(blockQueueParams {
-                key = EXAMPLE_KEY_A
-                crawlID = CRAWL_ID_A
-                time = Instant.now().epochSecond + 1
-            })
+            stub.blockQueueUntil(
+                blockQueueParams {
+                    key = EXAMPLE_KEY_A
+                    crawlID = CRAWL_ID_A
+                    time = Instant.now().epochSecond + 1
+                }
+            )
 
-            val result1 = stub.getURLs(getParams {
-                crawlID = CRAWL_ID_A
-            }).toList()
+            val result1 = stub.getURLs(
+                getParams {
+                    crawlID = CRAWL_ID_A
+                }
+            ).toList()
             assertEquals(1, result1.size)
             assertContentEquals(listOf(EXAMPLE_URL_D), result1.map { it.url })
 
             delay(2000)
 
-            val result2 = stub.getURLs(getParams {
-                crawlID = CRAWL_ID_A
-            }).toList()
+            val result2 = stub.getURLs(
+                getParams {
+                    crawlID = CRAWL_ID_A
+                }
+            ).toList()
             assertEquals(1, result2.size)
             assertContentEquals(listOf(EXAMPLE_URL_A), result2.map { it.url })
         }
@@ -347,10 +366,15 @@ class MemoryFrontierServiceTest {
         stub.putUrls(URL_DISCOVERED_A_IN_KEY_A_CRAWL_A, URL_DISCOVERED_B_IN_KEY_B_CRAWL_A)
         runBlocking {
             assertEquals(2, stub.listQueues(ALL_QUEUES_CRAWL_ID_A).size)
-            assertEquals(1, stub.deleteQueue(queueWithinCrawlParams {
-                crawlID = CRAWL_ID_A
-                key = EXAMPLE_KEY_A
-            }).value)
+            assertEquals(
+                1,
+                stub.deleteQueue(
+                    queueWithinCrawlParams {
+                        crawlID = CRAWL_ID_A
+                        key = EXAMPLE_KEY_A
+                    }
+                ).value
+            )
             assertEquals(1, stub.listQueues(ALL_QUEUES_CRAWL_ID_A).size)
         }
     }

@@ -24,28 +24,32 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
 
     // in memory map of metadata for each queue
     internal val queues: MutableMap<QueueInCrawlKey, QueueInterface<T>> =
-        Collections.synchronizedMap(LinkedHashMap<QueueInCrawlKey, QueueInterface<T>>())
+        Collections.synchronizedMap(LinkedHashMap())
 
     override fun listCrawls(
         request: Urlfrontier.Empty,
         responseObserver: StreamObserver<Urlfrontier.StringList>
     ) {
-        val crawlIDs = synchronized(queues) { queues.keys.map { it.crawlID }.distinct().asIterable() }
-        responseObserver.onNext(stringList(crawlIDs))
-        responseObserver.onCompleted()
+        val crawlIDs = synchronized(queues) { queues.keys.map { it.crawlID }.distinct() }
+        with(responseObserver) {
+            onNext(stringList(crawlIDs))
+            onCompleted()
+        }
     }
 
     override fun deleteCrawl(
         crawlID: Urlfrontier.String,
         responseObserver: StreamObserver<Urlfrontier.Integer>
     ) {
-        val normalisedCrawlID: String = crawlID.value.normaliseCrawlID()
+        val normalisedCrawlID: String = crawlID.value.ifEmpty { DEFAULT_CRAWL_ID }
         val total = synchronized(queues) {
             val toDelete = queues.keys.filter { it.crawlID == normalisedCrawlID }.distinct()
             if (toDelete.isEmpty()) -1 else toDelete.sumOf { queues.remove(it)?.countActive ?: 0 }
         }
-        responseObserver.onNext(integer(total))
-        responseObserver.onCompleted()
+        with(responseObserver) {
+            onNext(integer(total))
+            onCompleted()
+        }
     }
 
     override fun setActive(
@@ -53,13 +57,17 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
         responseObserver: StreamObserver<Urlfrontier.Empty>
     ) {
         isActive = request.state
-        responseObserver.onNextEmpty()
-        responseObserver.onCompleted()
+        with(responseObserver) {
+            onNext(empty())
+            onCompleted()
+        }
     }
 
     override fun getActive(request: Urlfrontier.Empty, responseObserver: StreamObserver<Urlfrontier.Boolean>) {
-        responseObserver.onNext(Urlfrontier.Boolean.newBuilder().setState(isActive).build())
-        responseObserver.onCompleted()
+        with(responseObserver) {
+            onNext(boolean(isActive))
+            onCompleted()
+        }
     }
 
     override fun listQueues(
@@ -73,7 +81,7 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
         // include inactive queues; defaults to false
         val includeInactive = request.includeInactive
 
-        val crawlID = request.crawlID.normaliseCrawlID()
+        val crawlID = request.crawlID.ifEmpty { DEFAULT_CRAWL_ID }
         val now = Instant.now().epochSecond
 
         logger.info {
@@ -101,8 +109,10 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
             this.crawlID = request.crawlID
             addAllValues(list.map { (_, key) -> key })
         }
-        responseObserver.onNext(queueList)
-        responseObserver.onCompleted()
+        with(responseObserver) {
+            onNext(queueList)
+            onCompleted()
+        }
     }
 
     override fun blockQueueUntil(
@@ -110,11 +120,15 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
         responseObserver: StreamObserver<Urlfrontier.Empty>
     ) {
         val qwc = queueKey(request.key, request.crawlID)
-        queues[qwc]?.let {
-            it.blockedUntil = request.time
+        synchronized(queues) {
+            queues[qwc]?.let {
+                it.blockedUntil = request.time
+            }
         }
-        responseObserver.onNext(empty())
-        responseObserver.onCompleted()
+        with(responseObserver) {
+            onNext(empty())
+            onCompleted()
+        }
     }
 
     override fun setDelay(request: Urlfrontier.QueueDelayParams, responseObserver: StreamObserver<Urlfrontier.Empty>) {
@@ -123,13 +137,14 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
         } else {
             val qwc = queueKey(request.key, request.crawlID)
             val queue = synchronized(queues) {
-                queues.getOrDebug(qwc) { "Requested missing queue $qwc" }
+                queues[qwc] ?: null.also { logger.debug { "Requested missing queue $qwc" } }
             }
             queue?.delay = request.delayRequestable
         }
-
-        responseObserver.onNextEmpty()
-        responseObserver.onCompleted()
+        with(responseObserver) {
+            onNext(empty())
+            onCompleted()
+        }
     }
 
     /**
@@ -140,9 +155,13 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
         responseObserver: StreamObserver<Urlfrontier.Integer>
     ) {
         val qwc = queueKey(request.key, request.crawlID)
-        val q = queues.remove(qwc)?.countActive ?: -1
-        responseObserver.onNextInteger(q)
-        responseObserver.onCompleted()
+        val q = synchronized(queues) {
+            queues.remove(qwc)?.countActive ?: -1
+        }
+        with(responseObserver) {
+            onNext(integer(q))
+            onCompleted()
+        }
     }
 
     override fun getStats(
@@ -150,40 +169,45 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
         responseObserver: StreamObserver<Urlfrontier.Stats>
     ) {
         logger.info("Received stats request")
-        val normalisedCrawlID: String = request.crawlID.normaliseCrawlID()
+        val normalisedCrawlID: String = request.crawlID.ifEmpty { DEFAULT_CRAWL_ID }
 
-        val selectedQueues = if (request.key.isNotEmpty()) {
-            // specific queue?
-            val qwc = queueKey(request.key, normalisedCrawlID)
-            queues[qwc]?.let { listOf(it) } ?: emptyList()
-        } else {
-            synchronized(queues) {
+        val selectedQueues = synchronized(queues) {
+            if (request.key.isNotEmpty()) {
+                // specific queue?
+                val qwc = queueKey(request.key, normalisedCrawlID)
+                queues[qwc]?.let { listOf(it) } ?: emptyList()
+            } else {
                 queues.asSequence()
                     .filter { (qwc, _) -> qwc.crawlID == normalisedCrawlID }
                     .map { (_, value) -> value }
                     .toList()
             }
         }
-        // backed by the queues so can result in a
-        // ConcurrentModificationException
+
         val now = Instant.now().epochSecond
-        val stats = synchronized(queues) {
-            selectedQueues.fold(Statistics(normalisedCrawlID)) { acc, queue ->
-                val inProcessForQueue = queue.getInProcess(now)
-                val activeForQueue = queue.countActive
-                val isQueueActive = if (inProcessForQueue > 0 || activeForQueue > 0) 1 else 0
-                acc.copy(
-                    inProcess = acc.inProcess + inProcessForQueue,
-                    numQueues = acc.numQueues + 1,
-                    active = acc.active + activeForQueue,
-                    completed = acc.completed + queue.countCompleted,
-                    activeQueues = acc.activeQueues + isQueueActive
-                )
-            }
+        val stats = selectedQueues.fold(Statistics(normalisedCrawlID)) { acc, queue ->
+            acc.copy(
+                inProcess = acc.inProcess + queue.getInProcess(now),
+                numQueues = acc.numQueues + 1,
+                active = acc.active + queue.countActive,
+                completed = acc.completed + queue.countCompleted,
+                activeQueues = acc.activeQueues + if (queue.getInProcess(now) > 0 || queue.countActive > 0) 1 else 0
+            )
         }
 
-        responseObserver.onNextStats(stats)
-        responseObserver.onCompleted()
+        with(responseObserver) {
+            onNext(
+                stats {
+                    numberOfQueues = stats.numQueues
+                    size = stats.active
+                    inProcess = stats.inProcess
+                    putCounts("completed", stats.completed)
+                    putCounts("active-queues", stats.activeQueues)
+                    crawlID = request.crawlID
+                }
+            )
+            onCompleted()
+        }
     }
 
     override fun getURLs(request: Urlfrontier.GetParams, responseObserver: StreamObserver<Urlfrontier.URLInfo>) {
@@ -203,12 +227,12 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
         }
         val start = System.currentTimeMillis()
 
-        val crawlID = if (request.hasCrawlID()) request.crawlID.normaliseCrawlID() else null
+        val crawlID: String? = if (request.hasCrawlID()) request.crawlID.ifEmpty { DEFAULT_CRAWL_ID } else null
         val key = request.key
         val now = Instant.now().epochSecond
 
         val queuesToProcess: List<Pair<QueueInCrawlKey, QueueInterface<T>>> =
-            if (!key.isNullOrEmpty() && !crawlID.isNullOrEmpty()) {
+            if (key.isNotEmpty() && !crawlID.isNullOrEmpty()) {
                 val qwc = queueKey(key, crawlID)
                 queues[qwc]?.let { queue -> listOf(qwc to queue) } ?: emptyList()
             } else {
@@ -282,8 +306,10 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
         logger.info {
             "Log level for ${request.getPackage()} set to ${request.level}"
         }
-        responseObserver.onNextEmpty()
-        responseObserver.onCompleted()
+        with(responseObserver) {
+            onNext(empty())
+            onCompleted()
+        }
     }
 
     companion object {
@@ -323,45 +349,10 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
     }
 }
 
-
-context(KLoggable)
-fun <K, V> Map<K, V>.getOrDebug(key: K, msg: () -> Any?): V? =
-    get(key) ?: null.also { logger.debug(msg) }
-
-fun StreamObserver<Urlfrontier.Empty>.onNextEmpty() {
-    onNext(Urlfrontier.Empty.getDefaultInstance())
-}
-
-fun StreamObserver<Urlfrontier.Integer>.onNextInteger(value: Long) {
-    onNext(Urlfrontier.Integer.newBuilder().setValue(value).build())
-}
-
-fun StreamObserver<Urlfrontier.Integer>.onNextInteger(value: Int) {
-    onNextInteger(value.toLong())
-}
-
-fun StreamObserver<Urlfrontier.Stats>.onNextStats(value: Statistics) {
-    val stats = with(value) {
-        Urlfrontier.Stats.newBuilder()
-            .setNumberOfQueues(numQueues.toLong())
-            .setSize(active.toLong())
-            .setInProcess(inProcess)
-            .putAllCounts(
-                mapOf(
-                    "completed" to completed,
-                    "active_queues" to activeQueues
-                )
-            )
-            .setCrawlID(crawlId)
-            .build()
-    }
-    onNext(stats)
-}
-
 data class Statistics(
     val crawlId: String,
-    val numQueues: Int = 0,
-    val active: Int = 0,
+    val numQueues: Long = 0,
+    val active: Long = 0,
     val inProcess: Int = 0,
     val completed: Long = 0,
     val activeQueues: Long = 0

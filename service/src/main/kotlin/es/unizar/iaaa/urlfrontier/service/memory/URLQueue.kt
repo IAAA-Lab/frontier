@@ -3,7 +3,7 @@ package es.unizar.iaaa.urlfrontier.service.memory
 import es.unizar.iaaa.urlfrontier.service.QueueInterface
 import java.util.PriorityQueue
 
-class URLQueue() : PriorityQueue<InternalURL>(), QueueInterface<InternalURL> {
+class URLQueue : PriorityQueue<InternalURL>(), QueueInterface<InternalURL> {
     // keep a hash of the completed URLs
     // these won't be refetched
     private val completed = HashSet<String>()

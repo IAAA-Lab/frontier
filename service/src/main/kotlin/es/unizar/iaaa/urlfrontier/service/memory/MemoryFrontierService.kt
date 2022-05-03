@@ -5,6 +5,8 @@ import crawlercommons.urlfrontier.Urlfrontier.URLInfo
 import crawlercommons.urlfrontier.Urlfrontier.URLItem
 import es.unizar.iaaa.urlfrontier.service.AbstractFrontierService
 import es.unizar.iaaa.urlfrontier.service.queueKey
+import es.unizar.iaaa.urlfrontier.service.string
+import es.unizar.iaaa.urlfrontier.service.urlInfo
 import io.grpc.stub.StreamObserver
 
 /**
@@ -21,16 +23,18 @@ open class MemoryFrontierService : AbstractFrontierService<InternalURL>() {
         queue.asSequence()
             .takeWhile { it.nextFetchDate <= now }
             .filter { it.heldUntil <= now }
-            .map {
-                runCatching {
-                    responseObserver.onNext(it.toURLInfo(prefixedKey))
-                    it.heldUntil = now + secsUntilRequestable
-                }.onFailure {
-                    logger.error("Caught unlikely error", it)
-                }
-            }
-            .filter { it.isSuccess }
             .take(maxURLsPerQueue)
+            .map {
+                responseObserver.onNext(
+                    urlInfo {
+                        key = prefixedKey.queueKey
+                        crawlID = prefixedKey.crawlID
+                        url = it.url
+                        putAllMetadata(URLInfo.parseFrom(it.serialised).metadataMap)
+                    }
+                )
+                it.heldUntil = now + secsUntilRequestable
+            }
             .count()
     }
 
@@ -77,11 +81,7 @@ open class MemoryFrontierService : AbstractFrontierService<InternalURL>() {
                 }
                 is URLItemRecordFailure -> logger.error(record.msg)
             }
-            responseObserver.onNext(
-                Urlfrontier.String.newBuilder()
-                    .setValue(record.info.url)
-                    .build()
-            )
+            responseObserver.onNext(string(record.info.url))
         }
 
         override fun onError(t: Throwable) {
@@ -93,4 +93,3 @@ open class MemoryFrontierService : AbstractFrontierService<InternalURL>() {
         }
     }
 }
-

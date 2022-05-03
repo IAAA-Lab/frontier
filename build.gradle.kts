@@ -22,4 +22,3 @@ subprojects {
 ktlint {
     version.set("0.45.2")
 }
-

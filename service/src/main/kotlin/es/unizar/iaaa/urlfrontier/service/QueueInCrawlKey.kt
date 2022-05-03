@@ -16,8 +16,6 @@ data class QueueInCrawlKey(
 fun queueKey(
     queueKey: String,
     crawlID: String
-) : QueueInCrawlKey = QueueInCrawlKey(queueKey, crawlID.normaliseCrawlID())
-
-internal fun String.normaliseCrawlID() = trim { it <= ' ' }.ifEmpty { DEFAULT_CRAWL_ID }
+): QueueInCrawlKey = QueueInCrawlKey(queueKey, crawlID.ifEmpty { DEFAULT_CRAWL_ID })
 
 internal const val DEFAULT_CRAWL_ID = "DEFAULT"

@@ -27,5 +27,7 @@ ktlint {
 sonarqube {
     properties {
         property("sonar.projectKey", "IAAA-Lab_frontier")
+        property("sonar.organization", "iaaa-lab")
+        property("sonar.host.url", "https://sonarcloud.io")
     }
 }

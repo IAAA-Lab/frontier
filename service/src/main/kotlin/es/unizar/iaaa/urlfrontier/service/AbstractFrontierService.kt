@@ -225,7 +225,6 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
         logger.info {
             "Received request to get fetchable URLs [max queues $maxQueues, max URLs $maxURLsPerQueue, delay $secsUntilRequestable]"
         }
-        val start = System.currentTimeMillis()
 
         val crawlID: String? = if (request.hasCrawlID()) request.crawlID.ifEmpty { DEFAULT_CRAWL_ID } else null
         val key = request.key
@@ -277,11 +276,11 @@ abstract class AbstractFrontierService<T> : URLFrontierImplBase(), KLoggable {
 
         val totalSent = queuesSent.sum()
         val numQueuesSent = queuesSent.size
-        logger.info {
-            "Sent $totalSent from $numQueuesSent queue(s) in ${System.currentTimeMillis() - start} msec"
-        }
         getURLsTotalCounter.inc(totalSent.toDouble())
-        requestTimer.observeDuration()
+        val duration = requestTimer.observeDuration()
+        logger.info {
+            "Sent $totalSent from $numQueuesSent queue(s) in $duration sec"
+        }
         responseObserver.onCompleted()
     }
 

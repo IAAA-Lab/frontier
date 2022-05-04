@@ -47,22 +47,21 @@ open class MemoryFrontierService : AbstractFrontierService<InternalURL>() {
             val record = value.toURLItemRecord()
             when (record) {
                 is URLItemRecordSuccess -> {
-                    val (key, discovered, info, nextFetchDate) = record
-                    val iu = InternalURL(info, nextFetchDate)
-                    val qk = queueKey(key, iu.crawlID)
+                    val iu = InternalURL(record.info, record.nextFetchDate)
+                    val qk = queueKey(record.key, record.info.crawlID)
 
                     // get the priority queue or create one
                     val queue = synchronized(queues) {
                         queues.getOrPut(qk) { URLQueue() } as URLQueue
                     }
                     val inQueue = queue.contains(iu)
-                    if (!inQueue || !discovered) {
+                    if (!inQueue || !record.discovered) {
                         if (inQueue) {
                             queue.remove(iu)
                             logger.debug { "Removed [${iu.url}]" }
                         }
                         when {
-                            discovered -> {
+                            record.discovered -> {
                                 queue.add(iu)
                                 logger.debug { "Added discovered [${iu.url}]" }
                             }

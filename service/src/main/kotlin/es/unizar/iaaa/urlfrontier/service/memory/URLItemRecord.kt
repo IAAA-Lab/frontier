@@ -2,6 +2,7 @@ package es.unizar.iaaa.urlfrontier.service.memory
 
 import crawlercommons.urlfrontier.Urlfrontier
 import mu.KotlinLogging
+import java.net.URI
 import java.time.Instant
 
 private val logger = KotlinLogging.logger {}
@@ -16,7 +17,9 @@ fun Urlfrontier.URLItem.toURLItemRecord(): URLItemRecord {
     val nextFetchDate = if (isNew) Instant.now().epochSecond else known.refetchableFromDate
     val key = info.key.ifEmpty {
         logger.debug { "key missing for ${info.url}" }
-        provideMissingKey(info.url)
+        runCatching {
+            URI.create(info.url).host
+        }.getOrDefault(null)
     }
 
     return when {
@@ -42,29 +45,3 @@ data class URLItemRecordFailure(
     override val info: Urlfrontier.URLInfo,
     val msg: () -> Any?
 ) : URLItemRecord
-
-fun provideMissingKey(url: String): String? {
-    var host = url
-    // find protocol part
-    val protocolPos = host.indexOf("://")
-    if (protocolPos != -1) {
-        host = url.substring(protocolPos + 3)
-    }
-    val port = host.indexOf(":")
-    if (port != -1) {
-        host = host.substring(0, port)
-    }
-    var sep = host.indexOf("/")
-    if (sep != -1) {
-        host = host.substring(0, sep)
-    }
-    sep = host.indexOf("?")
-    if (sep != -1) {
-        host = host.substring(0, sep)
-    }
-    sep = host.indexOf("&")
-    if (sep != -1) {
-        host = host.substring(0, sep)
-    }
-    return host.ifEmpty { null }
-}

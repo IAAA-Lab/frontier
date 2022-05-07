@@ -233,18 +233,19 @@ internal class FrontierProperties(
         return MapPropertySource(map)
     }
 
-    private fun parse(line: String): Pair<String, Any?>? {
-        if (line.isEmpty()) return null
-        val trimmedLine = line.trim { it <= ' ' }
-        if (trimmedLine.isEmpty()) return null
-
-        val pos = trimmedLine.indexOf('=')
-
-        if (pos == -1) {
-            return trimmedLine to null
+    private fun parse(line: String): Pair<String, Any?>? = regex.find(line)?.let { match ->
+        val groups = match.groupValues
+        when(groups.size) {
+            ONLY_KEY -> groups[KEY_GROUP].trim() to null
+            KEY_AND_VALUE -> groups[KEY_GROUP].trim() to groups[VALUE_GROUP].trim()
+            else -> null
         }
-        val key = trimmedLine.substring(0, pos).trim { it <= ' ' }
-        val value = trimmedLine.substring(pos + 1).trim { it <= ' ' }
-        return key to value
+    }
+    companion object {
+        val regex = "([^=]*)(=(.*))?".toRegex()
+        const val KEY_GROUP = 1
+        const val VALUE_GROUP = 3
+        const val ONLY_KEY = 2
+        const val KEY_AND_VALUE = 4
     }
 }

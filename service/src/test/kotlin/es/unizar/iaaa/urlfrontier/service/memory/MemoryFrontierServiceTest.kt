@@ -85,6 +85,7 @@ class MemoryFrontierServiceTest {
     }
 
     @Test
+    @Suppress("MaxLineLength")
     fun `If I put a discovered url and it exits as discovered in the queue the former it is discarded`(logCapture: LogCapture) {
         logCapture.setLogFilter(Level.DEBUG)
         val result = stub.putUrls(URL_DISCOVERED_A_IN_KEY_A_CRAWL_A, URL_DISCOVERED_A_IN_KEY_A_CRAWL_A)
@@ -99,6 +100,7 @@ class MemoryFrontierServiceTest {
     }
 
     @Test
+    @Suppress("MaxLineLength")
     fun `If I put a known url and it exits as discovered in the queue the latter it is discarded`(logCapture: LogCapture) {
         logCapture.setLogFilter(Level.DEBUG)
         val result = stub.putUrls(URL_DISCOVERED_A_IN_KEY_A_CRAWL_A, URL_KNOWN_REFETCHABLE)
@@ -113,6 +115,7 @@ class MemoryFrontierServiceTest {
     }
 
     @Test
+    @Suppress("MaxLineLength")
     fun `If I put a discovered url and it exits as known in the queue the former it is discarded`(logCapture: LogCapture) {
         logCapture.setLogFilter(Level.DEBUG)
         val result = stub.putUrls(URL_KNOWN_REFETCHABLE, URL_DISCOVERED_A_IN_KEY_A_CRAWL_A)

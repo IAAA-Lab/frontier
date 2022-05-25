@@ -1,4 +1,4 @@
-package es.unizar.iaaa.urlfrontier.service.utils
+package es.unizar.iaaa.frontier.service.utils
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger

@@ -1,9 +1,9 @@
-package es.unizar.iaaa.urlfrontier.service
+package es.unizar.iaaa.frontier.service
 
 import crawlercommons.urlfrontier.URLFrontierGrpcKt
-import es.unizar.iaaa.urlfrontier.service.Fixtures.CRAWL_ID_A
-import es.unizar.iaaa.urlfrontier.service.Fixtures.EMPTY_KEY
-import es.unizar.iaaa.urlfrontier.service.utils.GrpcCleanupExtension
+import es.unizar.iaaa.frontier.service.Fixtures.CRAWL_ID_A
+import es.unizar.iaaa.frontier.service.Fixtures.EMPTY_KEY
+import es.unizar.iaaa.frontier.service.utils.GrpcCleanupExtension
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.extension.RegisterExtension
 import kotlin.test.BeforeTest

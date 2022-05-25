@@ -1,4 +1,4 @@
-package es.unizar.iaaa.urlfrontier.service
+package es.unizar.iaaa.frontier.service
 
 import crawlercommons.urlfrontier.Urlfrontier
 import io.grpc.stub.StreamObserver

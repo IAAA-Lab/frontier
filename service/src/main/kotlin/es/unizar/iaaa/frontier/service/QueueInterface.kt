@@ -1,4 +1,4 @@
-package es.unizar.iaaa.urlfrontier.service
+package es.unizar.iaaa.frontier.service
 
 interface QueueInterface<T> {
     var blockedUntil: Long

@@ -1,4 +1,4 @@
-package es.unizar.iaaa.urlfrontier.service.runtime
+package es.unizar.iaaa.frontier.service.runtime
 
 /**
  * Gets runtime lazily.

@@ -1,6 +1,6 @@
-package es.unizar.iaaa.urlfrontier.service.memory
+package es.unizar.iaaa.frontier.service.memory
 
-import es.unizar.iaaa.urlfrontier.service.QueueInterface
+import es.unizar.iaaa.frontier.service.QueueInterface
 import java.util.PriorityQueue
 
 class URLQueue : PriorityQueue<InternalURL>(), QueueInterface<InternalURL> {

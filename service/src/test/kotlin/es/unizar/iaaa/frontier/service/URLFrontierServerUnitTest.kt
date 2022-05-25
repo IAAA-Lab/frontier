@@ -1,8 +1,8 @@
-package es.unizar.iaaa.urlfrontier.service
+package es.unizar.iaaa.frontier.service
 
 import crawlercommons.urlfrontier.Urlfrontier
-import es.unizar.iaaa.urlfrontier.service.memory.InternalURL
-import es.unizar.iaaa.urlfrontier.service.memory.MemoryFrontierService
+import es.unizar.iaaa.frontier.service.memory.InternalURL
+import es.unizar.iaaa.frontier.service.memory.MemoryFrontierService
 import io.grpc.stub.StreamObserver
 import kotlin.test.BeforeTest
 import kotlin.test.Test

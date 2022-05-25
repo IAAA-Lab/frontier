@@ -1,4 +1,4 @@
-package es.unizar.iaaa.urlfrontier.service.memory
+package es.unizar.iaaa.frontier.service.memory
 
 import crawlercommons.urlfrontier.Urlfrontier.URLInfo
 

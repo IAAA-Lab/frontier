@@ -1,4 +1,4 @@
-package es.unizar.iaaa.urlfrontier.service.utils
+package es.unizar.iaaa.frontier.service.utils
 
 import io.grpc.BindableService
 import io.grpc.Channel

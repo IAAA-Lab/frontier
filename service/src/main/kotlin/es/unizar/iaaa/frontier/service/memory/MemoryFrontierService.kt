@@ -1,12 +1,12 @@
-package es.unizar.iaaa.urlfrontier.service.memory
+package es.unizar.iaaa.frontier.service.memory
 
 import crawlercommons.urlfrontier.Urlfrontier
 import crawlercommons.urlfrontier.Urlfrontier.URLInfo
 import crawlercommons.urlfrontier.Urlfrontier.URLItem
-import es.unizar.iaaa.urlfrontier.service.AbstractFrontierService
-import es.unizar.iaaa.urlfrontier.service.queueKey
-import es.unizar.iaaa.urlfrontier.service.string
-import es.unizar.iaaa.urlfrontier.service.urlInfo
+import es.unizar.iaaa.frontier.service.AbstractFrontierService
+import es.unizar.iaaa.frontier.service.queueKey
+import es.unizar.iaaa.frontier.service.string
+import es.unizar.iaaa.frontier.service.urlInfo
 import io.grpc.stub.StreamObserver
 
 /**

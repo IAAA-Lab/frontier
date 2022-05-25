@@ -1,4 +1,4 @@
-package es.unizar.iaaa.urlfrontier.service
+package es.unizar.iaaa.frontier.service
 
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

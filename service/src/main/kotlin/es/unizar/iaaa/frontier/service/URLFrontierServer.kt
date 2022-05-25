@@ -1,13 +1,13 @@
-package es.unizar.iaaa.urlfrontier.service
+package es.unizar.iaaa.frontier.service
 
 import com.sksamuel.hoplite.ConfigLoaderBuilder
 import com.sksamuel.hoplite.MapPropertySource
 import com.sksamuel.hoplite.PropertySource
 import com.sksamuel.hoplite.addResourceOrFileSource
 import crawlercommons.urlfrontier.URLFrontierGrpc.URLFrontierImplBase
-import es.unizar.iaaa.urlfrontier.service.memory.MemoryFrontierService
-import es.unizar.iaaa.urlfrontier.service.runtime.runtime
-import es.unizar.iaaa.urlfrontier.service.runtime.shutdownHook
+import es.unizar.iaaa.frontier.service.memory.MemoryFrontierService
+import es.unizar.iaaa.frontier.service.runtime.runtime
+import es.unizar.iaaa.frontier.service.runtime.shutdownHook
 import io.grpc.Server
 import io.grpc.ServerBuilder
 import io.prometheus.client.exporter.HTTPServer

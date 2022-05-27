@@ -235,12 +235,13 @@ internal class FrontierProperties(
 
     private fun parse(line: String): Pair<String, Any?>? = regex.find(line)?.let { match ->
         val groups = match.groupValues
-        when(groups.size) {
+        when (groups.size) {
             ONLY_KEY -> groups[KEY_GROUP].trim() to null
             KEY_AND_VALUE -> groups[KEY_GROUP].trim() to groups[VALUE_GROUP].trim()
             else -> null
         }
     }
+
     companion object {
         val regex = "([^=]*)(=(.*))?".toRegex()
         const val KEY_GROUP = 1
